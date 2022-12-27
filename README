@@ -1,4 +1,4 @@
-This is a very early prototype for my chroot-friendly implementation of sudo, which uses a local tcp socket for privilege escalation in place of traditional methods (setuid / setgid, etc). This is in order to work around the inherent fuckiness of chroots (especially when using qemu-user-static for cross-arch.
+This is a very early prototype for my chroot-friendly implementation of sudo, which uses a local tcp socket for privilege escalation in place of traditional methods, setuid / setgid, etc). This is in order to work around the inherent fuckiness of chroots (especially when using qemu-user-static for cross-arch.
 
 Authentication is handled via public/private keypair. See the keygen included. Edit daemon and tcudo to point them at your priv and pub keys. This is to allow for granting and revoking tcudo access (not to mention, for network security reasons).
 
