@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-AuthKey=$(cat /home/v1ru5/SUDOBLYAT-pub)
+AuthKey=$(cat /home/$USER/SUDOBLYAT-pub)
 
 OP=$@
 
