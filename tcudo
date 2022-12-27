@@ -1,0 +1,85 @@
+#!/usr/bin/env zsh
+
+AuthKey=$(cat /home/v1ru5/SUDOBLYAT-pub)
+
+OP=$@
+
+WORKINGDIR=$(pwd)
+
+zmodload zsh/net/tcp
+
+TARGET=127.0.0.1
+
+PORT=22565
+
+if ! ztcp $TARGET $PORT; then
+  exit 1
+fi
+hostfd=$REPLY
+read line <& $hostfd
+echo $line &> /dev/null
+echo $WORKINGDIR >& $hostfd
+read line <& $hostfd
+echo $line &> /dev/null
+LOOPY="0"
+RESOLVED=$(ping $TARGET -c 1 | head -n 1)
+unset nRESOLVED
+nRESOLVED=" "
+while read -k1 -u0 character; do
+  i=${character/')'/BRACEDETECT}
+  if [[ "$i" != BRACEDETECT ]]; then
+    nRESOLVED=""$nRESOLVED""$i""
+  else
+    break
+  fi
+done < <(echo -n $RESOLVED)
+RESOLVED=$(echo ${nRESOLVED/*'('/ })
+IPINFO="setip $(ip route get $RESOLVED)"
+IPINFO=${IPINFO/*src/ }
+IPINFO=${IPINFO/uid*/ }
+if ! which hostname &> /dev/null; then
+  alias hostname="echo localhost"
+fi
+zHOSTNAME=$(hostname)
+if [ -z "$zHOSTNAME" ]; then
+  zHOSTNAME=localhost
+fi
+IPINFO="setip "$IPINFO" "$USER"ISWEARIFSOMEONEACTUALLYHASTHISASTHEIRHOSTORUSER"$zHOSTNAME""
+FIRSTRUN="1"
+while [ $LOOPY = 0 ]; do
+  if [ $FIRSTRUN = "0" ]; then
+    echo $OP >& $hostfd
+    if [[ $line = bigrip ]]; then
+      tput setaf 1
+        echo "Command failed to execute properly"
+      tput sgr 0
+      exit 1
+    fi
+    rm -rf /tmp/cfuckitIOtime
+    touch /tmp/cfuckitIOtime
+    while IFS= n=1 N=1 read line <& $hostfd; do
+      if [ "$(echo -n $line)" = xfercomp ]; then
+        break
+      fi
+      echo -n $line | xxd -r -p >> /tmp/cfuckitIOtime
+    done
+    cat /tmp/cfuckitIOtime
+    exit 0
+  else
+    echo "$IPINFO" >& $hostfd
+    read line <& $hostfd
+    echo $line &> /dev/null
+    echo $AuthKey >& $hostfd
+    read line <& $hostfd
+    if ! echo $line | grep successful &> /dev/null; then
+      echo $line
+    fi
+    read line <& $hostfd
+    if [ "$line" = fail ]; then
+      false
+      break
+    fi
+    FIRSTRUN="0"
+  fi
+done
+ztcp -c $hostfd

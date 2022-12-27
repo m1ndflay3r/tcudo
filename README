@@ -1,0 +1,23 @@
+This is a very early prototype for my chroot-friendly re-implementation of sudo, which uses a local tcp socket + server daemon for privilege escallation in place of traditional methods like setuid / setgid in order to work around the inherent fuckiness with chroots (especially when using qemu-user-static for cross-arch chrooting).
+
+Authentication is handled via public/private keypair (see the keygen included. Edit daemon and tcudo to point them at your priv and pub keys. This is to allow for granting and revoking tcudo access (not to mention network security reasons).
+
+Reminder that this is extremely-not-ready at the moment, so no QQing all over my issue tracker if your computer starts speaking backwards, spends all your money on 1970s hospital gowns, or otherwise acts in a rude or unpleasant manner towards you or your kin.
+
+
+I'll do a proper writeup / tutorial / blablabla when it's a bit more fleshed out. For now the basic steps are this
+
+1 - chroot into whatever distro as per usual
+
+2 - generate a key, move pubkey to non root user's home, priv to /root. Change perms on non-root key. 
+
+3 - edit daemon and tcudo, change the line in each near the beginning so tcudo points at pubkey and daemon at priv. Use absolute paths, no ../ or ~ bullshit
+
+4 - move daemon and tcudo to somewhere in your PATH (or dont, it'll work from anywhere so it's whatever)
+
+5 - as root, run daemon like "daemon &> /dev/null &".
+
+6 - log into your non-root user without leaving chroot (i.e, just do su someuser ya fuck). you can now run commands as root with tcudo.
+
+
+Oh yeah and you'll need xxd and tmux. And probably something else I'm forgetting lmao good luck

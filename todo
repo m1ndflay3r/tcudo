@@ -1,0 +1,5 @@
+- implement on-the-fly feedback of currently-running commands rather than having to wait for all output at once
+- implement interactive capability with currently-running commands
+- integrate tmux (see above)
+- fine I guess I'll write a fucking systemd service. Fucking systemd, man. 
+- code cleanup

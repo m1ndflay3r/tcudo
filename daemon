@@ -1,0 +1,129 @@
+#!/usr/bin/env zsh
+
+zmodload zsh/net/tcp
+
+AUTHORIZED="0"
+
+PrivateKey=/root/zsh-tcp-fileserver/SUDOBLYAT
+
+echo '#!/usr/bin/env zsh' > /tmp/forfuksak
+echo 'OP=$@' >> /tmp/forfuksak
+echo 'rm -rf /tmp/.wedonttalkaboutthis' >> /tmp/forfuksak
+echo 'COUNT=0' >> /tmp/forfuksak
+echo 'until eval "pacman --noconfirm $OP" &> /tmp/.wedonttalkaboutthis && true; do' >> /tmp/forfuksak
+echo '  sleep 0.1' >> /tmp/forfuksak
+echo '  COUNT=$((COUNT+0.1))' >> /tmp/forfuksak
+echo '  if [ $COUNT = 60 ]; then' >> /tmp/forfuksak
+echo '    echo "Nothing seems to have happened after 60 ticks"' >> /tmp/forfuksak
+echo '    break' >> /tmp/forfuksak
+echo '  fi' >> /tmp/forfuksak
+echo 'done' >> /tmp/forfuksak
+echo 'cat /tmp/.wedonttalkaboutthis' >> /tmp/forfuksak
+chmod 755 /tmp/forfuksak
+alias pacman="/tmp/forfuksak"
+alias fukurmum="echo $'\n'"
+
+TEST1=$(md5sum $PrivateKey)
+TEST1=${TEST1:0:32}
+TEST2=$(sha1sum $PrivateKey)
+TEST2=${TEST2:0:40}
+export ExpectPubKey=""$TEST1"l0l1m50rand0m"$TEST2""
+ExpectPubLen="0"
+while read -k1 -u0 character; do
+  ExpectPubLen=$((ExpectPubLen+1))
+done < <(echo -n $ExpectPubKey)
+
+main() {
+  ztcp -l 22565
+  fd=$REPLY
+  echo "Waiting for connection..."
+  echo "$(date +"%T")    listening on port 22565" >> /root/zsh-tcp-fileserver/server.log
+  ztcp -a $fd
+  clientfd=$REPLY
+  echo "Client connected"
+  echo "$(date +"%T")    client connected" >> /root/zsh-tcp-fileserver/server.log
+  echo "$(tput setaf 2)Authenticating session...$(tput sgr 0)" >& $clientfd
+  read -t 600 line <& $clientfd
+  WORKINGDIR=$(echo $line)
+  echo "MYAAH" >& $clientfd
+  cd $WORKINGDIR
+  LOOPY="0"
+  while [ $LOOPY = 0 ]; do
+    if ! read -t 600 line <& $clientfd; then
+      echo "$(date +"%T")    connection closed - client timed out " >> /root/zsh-tcp-fileserver/server.log
+      line="close"
+    fi
+    IPLISTEN=${line:0:5}
+    if [[ $IPLISTEN = "setip" ]]; then
+      if [ $AUTHORIZED = "0" ]; then
+        CLIENTIP=${line//setip/ }
+        CLIENTIP=${CLIENTIP/ISWEARIFSOMEONEACTUALLYHASTHISASTHEIRHOSTORUSER/@}
+        echo "$(date +"%T")    client reported ip address $CLIENTIP" >> /root/zsh-tcp-fileserver/server.log
+        echo "Checking authkey..." >& $clientfd
+        read -t 600 line <& $clientfd
+        if [ -z "$line" ]; then
+          echo "$(date +"%T")    client sent a nullkey" >> /root/zsh-tcp-fileserver/server.log
+          line="NULLKEY"
+        fi
+        CLPUBLEN="0"
+        while read -k1 -u0 character; do
+          CLPUBLEN=$((CLPUBLEN+1))
+        done < <(echo -n $line)
+        if [[ "$line" = "$ExpectPubKey" ]] && [[ "$CLPUBLEN" = "$ExpectPubLen" ]]; then
+          SHPASS=1
+          MDPASS=1
+        else
+          SHPASS=0
+          MDPASS=0
+        fi
+        if [ $SHPASS = 0 ] || [ $MDPASS = 0 ]; then
+          echo "$(tput setaf 1) key verification failed $(tput sgr 0)" >& $clientfd
+          echo "fail" >& $clientfd
+          echo "$(date +"%T")    connection closed - bad pubkey" >> /root/zsh-tcp-fileserver/server.log
+          line="close"
+        else
+          ISIPSEND="1"
+          AUTHORIZED="1"
+          echo "$(tput setaf 2)Authentication successful$(tput sgr 0)" >& $clientfd
+          echo "pass" >& $clientfd
+          echo "$(date +"%T")    authentication successful" >> /root/zsh-tcp-fileserver/server.log
+        fi
+      else
+        echo "$(date +"%T")    client tried to report ip address twice" >> /root/zsh-tcp-fileserver/server.log
+        echo "$(tput setaf 1) trying to pull some tomfuckery are we?$(tput sgr 0)" >& $clientfd
+      fi
+    else
+      ISIPSEND="0"
+    fi
+    if [[ $line = "close" ]]; then
+      break
+    elif [ $AUTHORIZED = 1 ] && [ $ISIPSEND = 0 ]; then
+      if [ -z "$line" ]; then
+         line='echo NULL'
+      fi
+      unset zCOMMOUT
+      TOBEEX="$line"
+      TOBEEX+='; echo fuckurmum'
+      rm -rf /tmp/fuckitIOtime
+      touch /tmp/fuckitIOtime
+      while read line; do
+        echo "$line" >> /tmp/fuckitIOtime
+        if [ "$(echo -n $line)" = fuckurmum ]; then
+          break
+        fi
+      done <<(echo -n "$(eval $TOBEEX)")
+      dd if=/tmp/fuckitIOtime | xxd -p >& $clientfd
+      echo "xfercomp" >& $clientfd
+      elif [ $ISIPSEND = 0 ] && [ $AUTHORIZED = 0 ]; then
+        echo "$(tput setaf 5)access denied" >& $clientfd
+        echo "$(date +"%T")    connection closed - access denied" >> /root/zsh-tcp-fileserver/server.log
+      fi
+  done
+  echo "Client disconnected"
+  echo "$(date +"%T")    connection closed - client disconnect" >> /root/zsh-tcp-fileserver/server.log
+  ztcp -c $fd
+  ztcp -c $clientfd
+  AUTHORIZED="0"
+  ExpectPubKey="$ExpectPubKey" ExpectPubLen="$ExpectPubLen" main
+}
+main
