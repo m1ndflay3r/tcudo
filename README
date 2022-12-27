@@ -5,7 +5,7 @@ Authentication is handled via public/private keypair. See the keygen included. E
 Reminder that this is extremely-not-ready at the moment, so no QQing all over my issue tracker if your computer starts speaking backwards, spends all your money on 1970s hospital gowns, or otherwise acts in a rude or unpleasant manner towards you or your kin.
 
 
-I'll do a proper writeup / tutorial / blablabla when it's a bit more fleshed out. For now the basic steps are this
+I'll do a proper writeup / tutorial / blablabla when it's a bit more fleshed out. For now, the basic steps are as follows:
 
 1 - chroot into whatever distro as per usual
 
