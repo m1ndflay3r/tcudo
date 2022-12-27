@@ -11,7 +11,7 @@ I'll do a proper writeup / tutorial / blablabla when it's a bit more fleshed out
 
 2 - generate a key with generatekey, move pubkey to non root user's home, and privkey to /root. Change ownership of pubkey to non-root user. 
 
-3 - edit daemon and tcudo, change the line in each near the beginning so tcudo points at pubkey and daemon at priv. Use absolute paths, no ../ or ~ bullshit
+3 - edit daemon and tcudo, change the line in each near the beginning so tcudo points at pubkey and daemon at priv. Use absolute paths (i.e, /home/user/somekey-pub and not something like ~/somekey-pub)
 
 4 - move daemon and tcudo to somewhere in your PATH (or dont, it'll work from anywhere so it's whatever)
 
