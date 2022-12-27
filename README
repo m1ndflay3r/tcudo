@@ -9,7 +9,7 @@ I'll do a proper writeup / tutorial / blablabla when it's a bit more fleshed out
 
 1 - chroot into whatever distro as per usual
 
-2 - generate a key with generatwekey, move pubkey to non root user's home, and privkey to /root. Change ownership of pubkey to non-root user. 
+2 - generate a key with generatekey, move pubkey to non root user's home, and privkey to /root. Change ownership of pubkey to non-root user. 
 
 3 - edit daemon and tcudo, change the line in each near the beginning so tcudo points at pubkey and daemon at priv. Use absolute paths, no ../ or ~ bullshit
 
